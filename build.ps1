@@ -227,26 +227,28 @@ Function PackageTests()
 
 Function RunGulp()
 {
-   Write-Host "##teamcity[progressStart 'Running Gulp']"
-   Invoke-Expression  'npm install'
-   CheckExitCode
+    Write-Host "##teamcity[progressStart 'Running npm']"
+    Invoke-Expression  'npm install'
+    CheckExitCode
+    Write-Host "##teamcity[progressFinish 'Running npm']"
 
-   Invoke-Expression 'gulp build' -ErrorAction Continue -Verbose
-   CheckExitCode
+    Write-Host "##teamcity[progressStart 'Running gulp']"
+    Invoke-Expression 'gulp build' -ErrorAction Continue -Verbose
+    CheckExitCode
 
-   Invoke-Expression 'gulp build --phantom' -ErrorAction Continue -Verbose
-   CheckExitCode
+    Invoke-Expression 'gulp build --phantom' -ErrorAction Continue -Verbose
+    CheckExitCode
 
-   Write-Host "##teamcity[progressFinish 'Running Gulp']"
+    Write-Host "##teamcity[progressFinish 'Running gulp']"
 }
 
 Function CheckExitCode()
 {
-        if ($lastexitcode -ne 0)
-        {
-            Write-Host $errorMessage
-            exit 1
-        }
+    if ($lastexitcode -ne 0)
+    {
+        Write-Host $errorMessage
+        exit 1
+    }
 }
 
 Function CleanupWindowsPackage()
