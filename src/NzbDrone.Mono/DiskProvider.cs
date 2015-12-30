@@ -15,6 +15,13 @@ namespace NzbDrone.Mono
     {
         private static readonly Logger Logger = NzbDroneLogger.GetLogger(typeof(DiskProvider));
 
+        private readonly IProcMountProvider _procMountProvider;
+
+        public DiskProvider(IProcMountProvider procMountProvider)
+        {
+            _procMountProvider = procMountProvider;
+        }
+
         public override long? GetAvailableSpace(string path)
         {
             Ensure.That(path, () => path).IsValidPath();
@@ -26,15 +33,15 @@ namespace NzbDrone.Mono
 
             try
             {
-                var driveInfo = GetDriveInfo(path);
+                var mount = GetMount(path);
 
-                if (driveInfo == null)
+                if (mount == null)
                 {
                     Logger.Debug("Unable to get free space for '{0}', unable to find suitable drive", path);
                     return null;
                 }
 
-                return driveInfo.AvailableFreeSpace;
+                return mount.AvailableFreeSpace;
             }
             catch (InvalidOperationException ex)
             {
@@ -116,6 +123,14 @@ namespace NzbDrone.Mono
             }
         }
 
+        public override System.Collections.Generic.List<IMount> GetMounts()
+        {
+            return base.GetMounts()
+                .Concat(_procMountProvider.GetMounts())
+                .DistinctBy(v => v.RootDirectory)
+                .ToList();
+        }
+
         public override long? GetTotalSize(string path)
         {
             Ensure.That(path, () => path).IsValidPath();
@@ -127,11 +142,11 @@ namespace NzbDrone.Mono
 
             try
             {
-                var driveInfo = GetDriveInfo(path);
+                var mount = GetMount(path);
 
-                if (driveInfo == null) return null;
+                if (mount == null) return null;
 
-                return driveInfo.TotalSize;
+                return mount.TotalSize;
             }
             catch (InvalidOperationException e)
             {
@@ -139,18 +154,6 @@ namespace NzbDrone.Mono
             }
 
             return null;
-        }
-
-        private DriveInfo GetDriveInfo(string path)
-        {
-            var drives = DriveInfo.GetDrives();
-
-            return
-                drives.Where(drive => drive.IsReady &&
-                                      drive.Name.IsNotNullOrWhiteSpace() &&
-                                      path.StartsWith(drive.Name, StringComparison.CurrentCultureIgnoreCase))
-                      .OrderByDescending(drive => drive.Name.Length)
-                      .FirstOrDefault();
         }
 
         public override bool TryCreateHardLink(string source, string destination)
