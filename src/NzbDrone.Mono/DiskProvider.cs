@@ -1,13 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Mono.Unix;
 using Mono.Unix.Native;
 using NLog;
 using NzbDrone.Common.Disk;
 using NzbDrone.Common.EnsureThat;
 using NzbDrone.Common.Extensions;
 using NzbDrone.Common.Instrumentation;
-using Mono.Unix;
 
 namespace NzbDrone.Mono
 {
@@ -25,11 +25,6 @@ namespace NzbDrone.Mono
         public override long? GetAvailableSpace(string path)
         {
             Ensure.That(path, () => path).IsValidPath();
-
-            var root = GetPathRoot(path);
-
-            if (!FolderExists(root))
-                throw new DirectoryNotFoundException(root);
 
             try
             {
@@ -134,11 +129,6 @@ namespace NzbDrone.Mono
         public override long? GetTotalSize(string path)
         {
             Ensure.That(path, () => path).IsValidPath();
-
-            var root = GetPathRoot(path);
-
-            if (!FolderExists(root))
-                throw new DirectoryNotFoundException(root);
 
             try
             {

@@ -6,6 +6,7 @@ using System.Text;
 using NLog;
 using NzbDrone.Common.Disk;
 using NzbDrone.Common.Extensions;
+using Mono.Unix;
 
 namespace NzbDrone.Mono
 {
@@ -121,17 +122,21 @@ namespace NzbDrone.Mono
 
     public class ProcMount : IMount
     {
+        private readonly UnixDriveInfo _unixDriveInfo;
+
         public ProcMount(DriveType driveType, string name, string mount, string type, Dictionary<string, string> options)
         {
             DriveType = driveType;
             Name = name;
             RootDirectory = mount;
             DriveFormat = type;
+
+            _unixDriveInfo = new UnixDriveInfo(mount);
         }
 
         public long AvailableFreeSpace
         {
-            get { throw new NotImplementedException(); }
+            get { return _unixDriveInfo.AvailableFreeSpace; }
         }
 
         public string DriveFormat { get; private set; }
@@ -140,7 +145,7 @@ namespace NzbDrone.Mono
 
         public bool IsReady
         {
-            get { return true; }
+            get { return _unixDriveInfo.IsReady; }
         }
 
         public string Name { get; private set; }
@@ -149,17 +154,17 @@ namespace NzbDrone.Mono
 
         public long TotalFreeSpace
         {
-            get { throw new NotImplementedException(); }
+            get { return _unixDriveInfo.TotalFreeSpace; }
         }
 
         public long TotalSize
         {
-            get { throw new NotImplementedException(); }
+            get { return _unixDriveInfo.TotalSize; }
         }
 
         public string VolumeLabel
         {
-            get { return null; }
+            get { return _unixDriveInfo.VolumeLabel; }
         }
     }
 
